@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>돈미새 테스트</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 480px;
+      margin: 0 auto;
+      background: #f9f9f9;
+      padding: 0;
+    }
+    .container {
+      text-align: center;
+      padding: 20px;
+    }
+    img.main-img {
+      width: 200px;
+      margin: 10px auto;
+      display: block;
+    }
+    .progress-container {
+      width: 100%;
+      background: #ddd;
+      border-radius: 10px;
+      height: 10px;
+      margin-bottom: 10px;
+    }
+    .progress-bar {
+      height: 10px;
+      background: #4CAF50;
+      border-radius: 10px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .progress-text {
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+    .question {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+    .option {
+      display: block;
+      padding: 12px;
+      margin: 10px 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .option:hover {
+      background: #eee;
+    }
+    .selected {
+      background: #d1f5d3 !important;
+      border-color: #4CAF50;
+    }
+    .next-btn {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .next-btn:disabled {
+      background: #bbb;
+      cursor: not-allowed;
+    }
+    .result {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 20px;
+      white-space: pre-line;
+    }
+    .share {
+      margin-top: 20px;
+      background: #4CAF50;
+      color: white;
+      padding: 10px;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .share-count {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>💰 나 정도면 돈미새??</h2>
+    <img src="greedy.png" class="main-img" alt="돈미새 이미지">
+    
+    <div id="quiz">
+      <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <div class="progress-text" id="progress-text">1/10</div>
+      <div class="question" id="question"></div>
+      <div id="options"></div>
+      <div class="ad">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4252360374523568"
+        crossorigin="anonymous"></script>
+      </div>
+      <button class="next-btn" id="next-btn" disabled>다음 ▶</button>
+    </div>
+
+    <div id="result" style="display:none;">
+      <div class="result" id="result-text"></div>
+      <a class="share" href="#" id="share-btn">결과 공유하기</a>
+      <div class="ad">[
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4252360374523568"
+        crossorigin="anonymous"></script>]
+      </div>
+      <div class="share-count" id="share-count">1.2만 명이 공유했어요</div>
+    </div>
+  </div>
+
+  <script>
+    const quizData = [
+      { q: "복권 1등 당첨됐다!", opts: ["부모님께 다 드린다", "반은 투자, 반은 여행", "전부 재투자한다"], score:[1,2,3] },
+      { q: "친구가 급전 빌려달라는데?", opts: ["그냥 준다", "계약서 쓰고 준다", "이율 붙여서 빌려준다"], score:[1,2,3] },
+      { q: "주식 계좌에 100만 원 생겼다!", opts: ["적금 넣는다", "ETF 분산투자", "레버리지 풀매수"], score:[1,2,3] },
+      { q: "친구가 코인 추천한다면?", opts: ["안 한다", "소액으로 테스트", "전재산 올인"], score:[1,2,3] },
+      { q: "사고 싶은 명품 가방이 생겼다", opts: ["참는다", "할부로 산다", "중고 사고 남은 돈 투자"], score:[1,2,3] },
+      { q: "이상형이 '투자 공부하는 사람 좋아해요'라면?", opts: ["무시한다", "책 한 권 읽는다", "강의 결제하고 인증샷"], score:[1,2,3] },
+      { q: "유튜브에 '이 종목 무조건 간다!' 영상이 뜬다면?", opts: ["무시한다", "공부 후 소액 매수", "바로 매수"], score:[1,2,3] },
+      { q: "돈보다 중요한 건?", opts: ["가족", "적당한 행복", "돈이 행복의 조건"], score:[1,2,3] },
+      { q: "친구가 수익 인증샷을 올렸다!", opts: ["축하만 한다", "부럽다고 느낀다", "당장 따라한다"], score:[1,2,3] },
+      { q: "연말 상여금이 나왔다!", opts: ["저축", "절반은 소비, 절반은 투자", "전부 투자"], score:[1,2,3] }
+    ];
+
+    const resultTypes = [
+      { range: [10,14], text: "🐑 당신은 '흑우 개미' 타입!\n투자보다 소비가 먼저… 재테크 흑우예정자" },
+      { range: [15,19], text: "📊 당신은 '현실적 재테크러' 타입!\n소소하지만 똑똑한 현실파, 연 5% 목표!" },
+      { range: [20,25], text: "🦊 당신은 '자본주의 여우' 타입!\n투자嗅覚 甲, 부자 마인드 장착" },
+      { range: [26,30], text: "🔥 당신은 '광기 어린 투기꾼' 타입!\n오늘은 개미, 내일은 존버의 신…" }
+    ];
+
+    let current = 0;
+    let score = 0;
+    let selectedScore = 0;
+    
+    const shareCount = Math.floor(Date.now()) % 100000;
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const progressBar = document.getElementById("progress-bar");
+    const progressText = document.getElementById("progress-text");
+    const resultEl = document.getElementById("result");
+    const quizEl = document.getElementById("quiz");
+    const resultText = document.getElementById("result-text");
+    const shareBtn = document.getElementById("share-btn");
+    const shareCountEl = document.getElementById("share-count");
+    const nextBtn = document.getElementById("next-btn");
+
+    function updateProgress() {
+      const total = quizData.length;
+      const percent = (current / total) * 100;
+      progressBar.style.width = percent + "%";
+      progressText.textContent = `${current}/${total}`;
+    }
+
+    function loadQuestion() {
+      if (current < quizData.length) {
+        selectedScore = 0;
+        nextBtn.disabled = true;
+        const q = quizData[current];
+        questionEl.textContent = q.q;
+        optionsEl.innerHTML = "";
+
+        q.opts.forEach((optText, idx) => {
+          const btn = document.createElement("div");
+          btn.className = "option";
+          btn.textContent = optText;
+          btn.onclick = () => {
+            selectedScore = q.score[idx];
+            document.querySelectorAll(".option").forEach(o => o.classList.remove("selected"));
+            btn.classList.add("selected");
+            nextBtn.disabled = false;
+          };
+          optionsEl.appendChild(btn);
+        });
+      } else {
+        showResult();
+      }
+    }
+
+    nextBtn.onclick = () => {
+      if (!selectedScore) {
+        alert("옵션을 선택하세요!");
+        return;
+      }
+      score += selectedScore;
+      current++;
+      updateProgress();
+      loadQuestion();
+    };
+
+    function showResult() {
+      quizEl.style.display = "none";
+      resultEl.style.display = "block";
+      const type = resultTypes.find(t => score >= t.range[0] && score <= t.range[1]);
+      resultText.textContent = type.text;
+      shareCountEl.textContent = `${shareCount}명이 공유했어요`;
+
+      shareBtn.onclick = async () => {
+        const shareText = `💰 나는 "${type.text.split("\\n")[0]}"래ㅋㅋ\\n너도 해봐 👉 ${window.location.href}`;
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(window.location.href);
+          alert("링크가 복사되었어요!");
+        }
+        shareCount++;
+        localStorage.setItem('shareCount', shareCount);
+        shareCountEl.textContent = `${shareCount}명이 공유했어요`;
+      };
+    }
+
+    updateProgress();
+    loadQuestion();
+  </script>
+</body>
+</html>
