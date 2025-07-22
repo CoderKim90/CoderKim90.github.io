@@ -171,7 +171,6 @@
     const quizEl = document.getElementById("quiz");
     const resultEl = document.getElementById("result");
     const resultText = document.getElementById("result-text");
-    const sharePromptEl = document.getElementById("share-prompt");
     const shareBtn = document.getElementById("share-btn");
     const shareCountEl = document.getElementById("share-count");
     const nextBtn = document.getElementById("next-btn");
@@ -221,7 +220,6 @@
       const [title, desc] = type.text.split("\n");
       resultText.innerHTML = `<span class="highlight">${title}</span>\n${desc}`;
 
-      sharePromptEl.textContent = `💰 나는 "${title}"래ㅋㅋ\n너도 해봐 👉 ${window.location.href}`;
       shareCountEl.textContent = `${shareCount}명이 공유했어요`;
 
       shareBtn.onclick = async ()=>{
