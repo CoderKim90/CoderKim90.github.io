@@ -60,7 +60,7 @@
       background: #d1f5d3 !important;
       border-color: #4CAF50;
     }
-    .next-btn {
+    .nav-btn {
       margin-top: 15px;
       padding: 10px 20px;
       background: #4CAF50;
@@ -69,7 +69,7 @@
       border-radius: 6px;
       cursor: pointer;
     }
-    .next-btn:disabled {
+    .nav-btn:disabled {
       background: #bbb;
       cursor: not-allowed;
     }
@@ -77,6 +77,12 @@
       font-size: 20px;
       font-weight: bold;
       margin-top: 20px;
+      white-space: pre-line;
+    }
+    .share-prompt {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #333;
       white-space: pre-line;
     }
     .share {
@@ -107,20 +113,14 @@
       <div class="progress-text" id="progress-text">1/10</div>
       <div class="question" id="question"></div>
       <div id="options"></div>
-      <div class="ad">
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4252360374523568"
-        crossorigin="anonymous"></script>
-      </div>
-      <button class="next-btn" id="next-btn" disabled>다음 ▶</button>
+      <button class="nav-btn" id="prev-btn" disabled>◀ 이전</button>
+      <button class="nav-btn" id="next-btn" disabled>다음 ▶</button>
     </div>
 
     <div id="result" style="display:none;">
       <div class="result" id="result-text"></div>
+      <div class="share-prompt" id="share-prompt"></div>
       <a class="share" href="#" id="share-btn">결과 공유하기</a>
-      <div class="ad">[
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4252360374523568"
-        crossorigin="anonymous"></script>]
-      </div>
       <div class="share-count" id="share-count">1.2만 명이 공유했어요</div>
     </div>
   </div>
@@ -147,84 +147,69 @@
     ];
 
     let current = 0;
-    let score = 0;
-    let selectedScore = 0;
-    
+    let answers = Array(quizData.length).fill(0);
+
     const shareCount = Math.floor(Date.now()) % 100000;
     const questionEl = document.getElementById("question");
     const optionsEl = document.getElementById("options");
     const progressBar = document.getElementById("progress-bar");
     const progressText = document.getElementById("progress-text");
-    const resultEl = document.getElementById("result");
     const quizEl = document.getElementById("quiz");
+    const resultEl = document.getElementById("result");
     const resultText = document.getElementById("result-text");
+    const sharePromptEl = document.getElementById("share-prompt");
     const shareBtn = document.getElementById("share-btn");
     const shareCountEl = document.getElementById("share-count");
     const nextBtn = document.getElementById("next-btn");
+    const prevBtn = document.getElementById("prev-btn");
 
     function updateProgress() {
-      const total = quizData.length;
-      const percent = (current / total) * 100;
+      const percent = (current / quizData.length) * 100;
       progressBar.style.width = percent + "%";
-      progressText.textContent = `${current}/${total}`;
+      progressText.textContent = `${current+1}/${quizData.length}`;
     }
 
     function loadQuestion() {
       if (current < quizData.length) {
-        selectedScore = 0;
-        nextBtn.disabled = true;
+        nextBtn.disabled = answers[current] === 0;
+        prevBtn.disabled = current === 0;
         const q = quizData[current];
         questionEl.textContent = q.q;
         optionsEl.innerHTML = "";
-
-        q.opts.forEach((optText, idx) => {
+        q.opts.forEach((opt, idx) => {
           const btn = document.createElement("div");
           btn.className = "option";
-          btn.textContent = optText;
+          btn.textContent = opt;
+          if (answers[current] === q.score[idx]) btn.classList.add("selected");
           btn.onclick = () => {
-            selectedScore = q.score[idx];
+            answers[current] = q.score[idx];
             document.querySelectorAll(".option").forEach(o => o.classList.remove("selected"));
             btn.classList.add("selected");
             nextBtn.disabled = false;
           };
           optionsEl.appendChild(btn);
         });
+        updateProgress();
       } else {
         showResult();
       }
     }
 
-    nextBtn.onclick = () => {
-      if (!selectedScore) {
-        alert("옵션을 선택하세요!");
-        return;
-      }
-      score += selectedScore;
-      current++;
-      updateProgress();
-      loadQuestion();
-    };
+    nextBtn.onclick = () => { current++; loadQuestion(); };
+    prevBtn.onclick = () => { current--; loadQuestion(); };
 
     function showResult() {
       quizEl.style.display = "none";
       resultEl.style.display = "block";
-      const type = resultTypes.find(t => score >= t.range[0] && score <= t.range[1]);
+      const totalScore = answers.reduce((a,b)=>a+b,0);
+      const type = resultTypes.find(t=>totalScore>=t.range[0]&&totalScore<=t.range[1]);
       resultText.textContent = type.text;
+      sharePromptEl.textContent = `💰 나는 "${type.text.split("\n")[0]}"래ㅋㅋ\n너도 해봐 👉 ${window.location.href}`;
       shareCountEl.textContent = `${shareCount}명이 공유했어요`;
-
-      shareBtn.onclick = async () => {
-        const shareText = `💰 나는 "${type.text.split("\\n")[0]}"래ㅋㅋ\\n너도 해봐 👉 ${window.location.href}`;
-        if (navigator.clipboard) {
-          await navigator.clipboard.writeText(window.location.href);
-          alert("링크가 복사되었어요!");
-        }
-        shareCount++;
-        localStorage.setItem('shareCount', shareCount);
-        shareCountEl.textContent = `${shareCount}명이 공유했어요`;
+      shareBtn.onclick = async ()=>{
+        if(navigator.clipboard){ await navigator.clipboard.writeText(window.location.href); alert("링크가 복사되었어요!"); }
       };
     }
-
-    updateProgress();
     loadQuestion();
   </script>
 </body>
