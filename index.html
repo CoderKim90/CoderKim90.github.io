@@ -78,6 +78,16 @@
       font-weight: bold;
       margin-top: 20px;
       white-space: pre-line;
+      line-height: 1.6;
+    }
+    .result .highlight {
+      color: #FF5722;
+      font-size: 26px;
+      display: inline-block;
+      background: #fff3e0;
+      padding: 4px 8px;
+      border-radius: 6px;
+      margin-bottom: 8px;
     }
     .share-prompt {
       margin-top: 10px;
@@ -207,11 +217,18 @@
       resultEl.style.display = "block";
       const totalScore = answers.reduce((a,b)=>a+b,0);
       const type = resultTypes.find(t=>totalScore>=t.range[0]&&totalScore<=t.range[1]);
-      resultText.textContent = type.text;
-      sharePromptEl.textContent = `💰 나는 "${type.text.split("\n")[0]}"래ㅋㅋ\n너도 해봐 👉 ${window.location.href}`;
+
+      const [title, desc] = type.text.split("\n");
+      resultText.innerHTML = `<span class="highlight">${title}</span>\n${desc}`;
+
+      sharePromptEl.textContent = `💰 나는 "${title}"래ㅋㅋ\n너도 해봐 👉 ${window.location.href}`;
       shareCountEl.textContent = `${shareCount}명이 공유했어요`;
+
       shareBtn.onclick = async ()=>{
-        if(navigator.clipboard){ await navigator.clipboard.writeText(window.location.href); alert("링크가 복사되었어요!"); }
+        if(navigator.clipboard){
+          await navigator.clipboard.writeText(window.location.href);
+          alert("링크가 복사되었어요!");
+        }
       };
     }
     loadQuestion();
